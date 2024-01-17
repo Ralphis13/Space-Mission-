@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Mission!</title>
+    <style>
+	body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+	back
+}
+
+#gameArea {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: black;
+}
+
+#player {
+
+    position: absolute;
+    bottom: 10px;
+	z-index: 2;
+}
+
+.enemy, .cross {
+    position: absolute;
+    background-size: contain;
+}
+.star {
+    width: 2px; 
+    height: 2px;
+    background-color: white;
+    position: absolute;
+}
+
+#lives {
+    color: red;
+    font-size: 24px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+	z-index: 3;
+}
+
+.life {
+    display: inline-block;
+    margin-right: 5px;
+}
+	</style>
+</head>
+<body>
+    <div id="gameArea">
+	        <div id="lives">
+            <span class="life">♥</span>
+            <span class="life">♥</span>
+            <span class="life">♥</span>
+        </div>
+        <img id="player" src="player.png" alt="Player">
+    </div>
+    <script>
+	document.addEventListener('DOMContentLoaded', () => {
+    const gameArea = document.getElementById('gameArea');
+    const player = document.getElementById('player');
+    const livesDisplay = document.querySelectorAll('.life');
+    let playerX = window.innerWidth / 2 - 25;
+    const playerWidth = 27;
+    const playerHeight = 48;
+    const playerSpeed = 5;
+    let gameInterval;
+    let lives = 3;
+
+    const enemyProbability = 0.5; 
+    const starProbability = 0.4; 
+    const crossProbability = 0.1; 
+
+    const updatePlayerPosition = () => {
+        player.style.left = playerX + 'px';
+    };
+
+	const createEnemy = (className, size, backgroundImage) => {		
+		const enemy = document.createElement('div');
+		enemy.classList.add(className);
+		enemy.style.left = Math.random() * (window.innerWidth - size) + 'px';	
+		enemy.style.top = '-50px';
+
+		enemy.style.width = size + 'px';
+		enemy.style.height = size + 'px';
+
+		if (backgroundImage) {
+			enemy.style.backgroundImage = `url(${backgroundImage})`;
+		}
+
+		gameArea.appendChild(enemy);
+	};
+
+
+
+    const updateEnemyPositions = () => {
+        document.querySelectorAll('.enemy, .star, .cross').forEach(enemy => {
+            let enemyY = parseInt(enemy.style.top);
+            enemyY += enemy.classList.contains('star') ? 1 : 2;
+            enemy.style.top = enemyY + 'px';
+
+            if (checkCollision(player, enemy)) {
+                if (enemy.classList.contains('enemy')) {
+                    loseLife(enemy);
+                } else if (enemy.classList.contains('cross')) {
+                    gainLife();
+                    enemy.remove();
+                }
+            }
+
+            if (enemyY > window.innerHeight) {
+                enemy.remove();
+            }
+        });
+    };
+
+
+    const checkCollision = (player, enemy) => {
+        const playerRect = player.getBoundingClientRect();
+        const enemyRect = enemy.getBoundingClientRect();
+
+        return !(enemyRect.top > playerRect.bottom ||
+                 enemyRect.right < playerRect.left ||
+                 enemyRect.bottom < playerRect.top ||
+                 enemyRect.left > playerRect.right);
+    };
+
+
+    const updateLivesDisplay = () => {
+        livesDisplay.forEach((life, index) => {
+            life.style.visibility = index < lives ? 'visible' : 'hidden';
+        });
+    };
+
+    const loseLife = (enemy) => {
+        lives--;
+        if (!enemy.classList.contains('star')) {
+            enemy.remove();
+        }
+        updateLivesDisplay();
+        if (lives <= 0) {
+            gameOver();
+        }
+    };
+
+    const gainLife = () => {
+        lives = Math.min(lives + 1, 3);
+        updateLivesDisplay();
+    };
+
+    const gameOver = () => {
+        clearInterval(gameInterval);
+        alert('Game Over');
+        resetGame();
+    };
+
+    const resetGame = () => {
+        document.querySelectorAll('.enemy, .cross').forEach(enemy => enemy.remove());
+        playerX = window.innerWidth / 2 - playerWidth / 2;
+        lives = 3;
+        updateLivesDisplay();
+        updatePlayerPosition();
+        startGame();
+    };
+
+	const startGame = () => {
+		gameInterval = setInterval(updateEnemyPositions, 20);
+		setInterval(() => {
+
+			const numberOfEnemies = Math.floor(Math.random() * 4) + 1;
+
+			for (let i = 0; i < numberOfEnemies; i++) {
+				const randomValue = Math.random();
+				if (randomValue < enemyProbability) {
+					createEnemy('enemy', 42, 'stone.png');
+				} else if (randomValue < enemyProbability + starProbability) {
+					createEnemy('star', 5);
+				} else if (randomValue < enemyProbability + starProbability + crossProbability) {
+					createEnemy('cross', 21, 'cross.png');
+				}
+			}
+		}, 1000);
+	};
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') {
+            playerX = Math.max(playerX - playerSpeed, 0);
+        } else if (e.key === 'ArrowRight') {
+            playerX = Math.min(playerX + playerSpeed, window.innerWidth - playerWidth);
+        }
+        updatePlayerPosition();
+    });
+
+    updatePlayerPosition();
+    updateLivesDisplay();
+    startGame();
+});
+	</script>
+</body>
+</html>
