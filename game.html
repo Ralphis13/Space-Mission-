@@ -22,17 +22,16 @@
 }
 
 #player {
-
     position: absolute;
     bottom: 10px;
 	z-index: 2;
 }
 
-.enemy, .cross {
+.enemy, .green-enemy {
     position: absolute;
     background-size: contain;
 }
-.star {
+.white-enemy {
     width: 2px; 
     height: 2px;
     background-color: white;
@@ -52,6 +51,47 @@
     display: inline-block;
     margin-right: 5px;
 }
+.mobile-controls {
+    position: fixed;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+    background-color: transparent
+    padding: 10px; 
+    text-align: center;
+    display: none; 
+	z-index: 5;
+}
+
+@media (max-width: 700px) {
+    .mobile-controls {
+        display: block; 
+    }
+	.mobile-controls button {
+		background-color: transparent;
+		backdrop-filter: blur(5px);
+		width: 35vw; 
+		height: 50px;
+		border: 2px solid #fff; 
+		color: #fff;
+		font-size: 20px; 
+		padding: 10px 20px; 
+		margin: 5px; 
+		cursor: pointer; 
+		outline: none; 
+}
+
+.mobile-controls button:hover {
+    background-color: #fff; 
+    color: #000; 
+}
+	#player {
+    position: absolute;
+    bottom: 130px;
+	z-index: 2;
+}
+}
+
 	</style>
 </head>
 <body>
@@ -62,26 +102,46 @@
             <span class="life">♥</span>
         </div>
         <img id="player" src="player.png" alt="Player">
+		 <div id="controls" class="mobile-controls">
+        <button id="leftButton">Left</button>
+        <button id="rightButton">Right</button>
+    </div>
     </div>
     <script>
 	document.addEventListener('DOMContentLoaded', () => {
     const gameArea = document.getElementById('gameArea');
     const player = document.getElementById('player');
     const livesDisplay = document.querySelectorAll('.life');
-    let playerX = window.innerWidth / 2 - 25;
     const playerWidth = 27;
     const playerHeight = 48;
     const playerSpeed = 5;
+	let playerX = window.innerWidth / 2 - 17;
     let gameInterval;
     let lives = 3;
 
     const enemyProbability = 0.5; 
     const starProbability = 0.4; 
     const crossProbability = 0.1; 
+	
+	
+	const leftButton = document.getElementById('leftButton');
+    const rightButton = document.getElementById('rightButton');
 
+    leftButton.addEventListener('click', () => {
+        // button left
+        playerX = Math.max(playerX - playerSpeed, 0);
+        updatePlayerPosition();
+    });
+
+    rightButton.addEventListener('click', () => {
+        // button right
+        playerX = Math.min(playerX + playerSpeed, window.innerWidth - playerWidth);
+        updatePlayerPosition();
+    });
     const updatePlayerPosition = () => {
         player.style.left = playerX + 'px';
     };
+
 
 	const createEnemy = (className, size, backgroundImage) => {		
 		const enemy = document.createElement('div');
@@ -99,18 +159,16 @@
 		gameArea.appendChild(enemy);
 	};
 
-
-
     const updateEnemyPositions = () => {
-        document.querySelectorAll('.enemy, .star, .cross').forEach(enemy => {
+        document.querySelectorAll('.enemy, .white-enemy, .green-enemy').forEach(enemy => {
             let enemyY = parseInt(enemy.style.top);
-            enemyY += enemy.classList.contains('star') ? 1 : 2;
+            enemyY += enemy.classList.contains('white-enemy') ? 1 : 2;
             enemy.style.top = enemyY + 'px';
 
             if (checkCollision(player, enemy)) {
                 if (enemy.classList.contains('enemy')) {
                     loseLife(enemy);
-                } else if (enemy.classList.contains('cross')) {
+                } else if (enemy.classList.contains('green-enemy')) {
                     gainLife();
                     enemy.remove();
                 }
@@ -122,7 +180,6 @@
         });
     };
 
-
     const checkCollision = (player, enemy) => {
         const playerRect = player.getBoundingClientRect();
         const enemyRect = enemy.getBoundingClientRect();
@@ -133,7 +190,6 @@
                  enemyRect.left > playerRect.right);
     };
 
-
     const updateLivesDisplay = () => {
         livesDisplay.forEach((life, index) => {
             life.style.visibility = index < lives ? 'visible' : 'hidden';
@@ -142,7 +198,7 @@
 
     const loseLife = (enemy) => {
         lives--;
-        if (!enemy.classList.contains('star')) {
+        if (!enemy.classList.contains('white-enemy')) {
             enemy.remove();
         }
         updateLivesDisplay();
@@ -163,7 +219,7 @@
     };
 
     const resetGame = () => {
-        document.querySelectorAll('.enemy, .cross').forEach(enemy => enemy.remove());
+        document.querySelectorAll('.enemy, .green-enemy').forEach(enemy => enemy.remove());
         playerX = window.innerWidth / 2 - playerWidth / 2;
         lives = 3;
         updateLivesDisplay();
@@ -180,11 +236,11 @@
 			for (let i = 0; i < numberOfEnemies; i++) {
 				const randomValue = Math.random();
 				if (randomValue < enemyProbability) {
-					createEnemy('enemy', 42, 'stone.png');
+					createEnemy('enemy', 42, 'red_enemy.png');
 				} else if (randomValue < enemyProbability + starProbability) {
-					createEnemy('star', 5);
+					createEnemy('white-enemy', 5);
 				} else if (randomValue < enemyProbability + starProbability + crossProbability) {
-					createEnemy('cross', 21, 'cross.png');
+					createEnemy('green-enemy', 21, 'green_enemy.png');
 				}
 			}
 		}, 1000);
@@ -198,6 +254,7 @@
         }
         updatePlayerPosition();
     });
+	
 
     updatePlayerPosition();
     updateLivesDisplay();
