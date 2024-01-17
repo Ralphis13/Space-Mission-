@@ -27,11 +27,11 @@
 	z-index: 2;
 }
 
-.enemy, .green-enemy {
+.enemy, .cross {
     position: absolute;
     background-size: contain;
 }
-.white-enemy {
+.star {
     width: 2px; 
     height: 2px;
     background-color: white;
@@ -160,15 +160,15 @@
 	};
 
     const updateEnemyPositions = () => {
-        document.querySelectorAll('.enemy, .white-enemy, .green-enemy').forEach(enemy => {
+        document.querySelectorAll('.enemy, .star, .cross').forEach(enemy => {
             let enemyY = parseInt(enemy.style.top);
-            enemyY += enemy.classList.contains('white-enemy') ? 1 : 2;
+            enemyY += enemy.classList.contains('star') ? 1 : 2;
             enemy.style.top = enemyY + 'px';
 
             if (checkCollision(player, enemy)) {
                 if (enemy.classList.contains('enemy')) {
                     loseLife(enemy);
-                } else if (enemy.classList.contains('green-enemy')) {
+                } else if (enemy.classList.contains('cross')) {
                     gainLife();
                     enemy.remove();
                 }
@@ -198,7 +198,7 @@
 
     const loseLife = (enemy) => {
         lives--;
-        if (!enemy.classList.contains('white-enemy')) {
+        if (!enemy.classList.contains('star')) {
             enemy.remove();
         }
         updateLivesDisplay();
@@ -219,7 +219,7 @@
     };
 
     const resetGame = () => {
-        document.querySelectorAll('.enemy, .green-enemy').forEach(enemy => enemy.remove());
+        document.querySelectorAll('.enemy, .cross').forEach(enemy => enemy.remove());
         playerX = window.innerWidth / 2 - playerWidth / 2;
         lives = 3;
         updateLivesDisplay();
@@ -236,11 +236,11 @@
 			for (let i = 0; i < numberOfEnemies; i++) {
 				const randomValue = Math.random();
 				if (randomValue < enemyProbability) {
-					createEnemy('enemy', 42, 'red_enemy.png');
+					createEnemy('enemy', 42, 'stone.png');
 				} else if (randomValue < enemyProbability + starProbability) {
-					createEnemy('white-enemy', 5);
+					createEnemy('star', 5);
 				} else if (randomValue < enemyProbability + starProbability + crossProbability) {
-					createEnemy('green-enemy', 21, 'green_enemy.png');
+					createEnemy('cross', 21, 'cross.png');
 				}
 			}
 		}, 1000);
